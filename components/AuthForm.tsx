@@ -14,9 +14,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { use, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { createAccount } from "@/lib/actions/user.actions";
+import OtpModal from "./OtpModal";
 
 type Props = {
   type: "sign-in" | "sign-up";
@@ -35,6 +37,7 @@ const authFormSchema = (formType: "sign-in" | "sign-up") => {
 const AuthForm = ({ type }: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [accountId, setAccountId] = useState<null | string>(null);
 
   const formSchema = authFormSchema(type);
 
@@ -47,7 +50,23 @@ const AuthForm = ({ type }: Props) => {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const user = await createAccount({
+        fullName: values.fullName || "",
+        email: values.email,
+      });
+
+      setAccountId(user.accountId);
+    } catch {
+      setErrorMessage(
+        "Erreur dans la création de compte. Veuillez ressayer dans quelques minutes."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -135,6 +154,10 @@ const AuthForm = ({ type }: Props) => {
           </div>
         </form>
       </Form>
+
+      {accountId && (
+        <OtpModal email={form.getValues("email")} accountId={accountId} />
+      )}
     </>
   );
 };
