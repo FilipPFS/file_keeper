@@ -21,13 +21,19 @@ import { signOutUser } from "@/lib/actions/user.actions";
 
 type Props = {
   accountId: string;
-  ownerId: string;
+  $id: string;
   fullName: string;
   email: string;
   avatar: string;
 };
 
-const MobileNav = ({ accountId, ownerId, fullName, email, avatar }: Props) => {
+const MobileNav = ({
+  accountId,
+  $id: ownerId,
+  fullName,
+  email,
+  avatar,
+}: Props) => {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -98,7 +104,7 @@ const MobileNav = ({ accountId, ownerId, fullName, email, avatar }: Props) => {
           <Separator className="my-5 bg-light-200/20" />
 
           <div className="flex flex-col justify-between gap-5 pb-5">
-            <FileUploader />
+            <FileUploader ownerId={ownerId} accountId={accountId} />
             <Button
               type="submit"
               className="mobile-sign-out-button"

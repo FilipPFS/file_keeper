@@ -127,7 +127,7 @@ const AuthForm = ({ type }: Props) => {
             type="submit"
             disabled={isLoading}
           >
-            {type === "sign-in" ? "Sign-In" : "Sign-Up"}
+            {type === "sign-in" ? "Se Connecter" : "S'Inscrire"}
 
             {isLoading && (
               <Image
