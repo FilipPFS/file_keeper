@@ -99,8 +99,15 @@ export const renameFile = async ({
   name,
   extension,
   path,
+  owner,
 }: RenameFileProps) => {
   const { databases } = await createAdminClient();
+
+  const currentUser = await fetchCurrentUser();
+
+  if (currentUser.$id !== owner) {
+    throw new Error("Unauthorized.");
+  }
 
   try {
     const newName = `${name}.${extension}`;
@@ -116,6 +123,69 @@ export const renameFile = async ({
 
     revalidatePath(path);
     return parseStringify(updatedFile);
+  } catch (error) {
+    handleError(error, "Failed to rename file");
+  }
+};
+
+export const updateFileUsers = async ({
+  fileId,
+  emails,
+  path,
+  owner,
+}: UpdateFileUsersProps) => {
+  const { databases } = await createAdminClient();
+
+  const currentUser = await fetchCurrentUser();
+
+  if (currentUser.$id !== owner) {
+    throw new Error("Unauthorized.");
+  }
+
+  try {
+    const updatedFile = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId,
+      {
+        users: emails,
+      }
+    );
+
+    revalidatePath(path);
+    return parseStringify(updatedFile);
+  } catch (error) {
+    handleError(error, "Failed to rename file");
+  }
+};
+
+export const deleteFile = async ({
+  fileId,
+  bucketFileId,
+  path,
+  owner,
+}: DeleteFileProps) => {
+  const { databases, storage } = await createAdminClient();
+
+  const currentUser = await fetchCurrentUser();
+
+  if (currentUser.$id !== owner) {
+    throw new Error("Unauthorized.");
+  }
+
+  try {
+    const deletedFile = await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId
+    );
+
+    if (deletedFile) {
+      await storage.deleteFile(appwriteConfig.bucketId, bucketFileId);
+    }
+
+    revalidatePath(path);
+    return parseStringify({ status: "success" });
   } catch (error) {
     handleError(error, "Failed to rename file");
   }

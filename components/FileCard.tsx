@@ -5,10 +5,12 @@ import Thumbnail from "./Thumbnail";
 import { convertFileSize } from "@/lib/utils";
 import FormatedDateTime from "./FormatedDateTime";
 import ActionDropdown from "./ActionDropdown";
+import { fetchCurrentUser } from "@/lib/actions/user.actions";
 
 export interface File extends Models.Document {
   owner: {
     fullName: string;
+    $id: string;
   };
   name: string;
   url: string;
@@ -24,7 +26,8 @@ type Props = {
   file: File;
 };
 
-const FileCard = ({ file }: Props) => {
+const FileCard = async ({ file }: Props) => {
+  const currentUser = await fetchCurrentUser();
   return (
     <Link href={file.url} target="_blank" className="file-card">
       <div className="flex justify-between">
@@ -37,7 +40,7 @@ const FileCard = ({ file }: Props) => {
         />
 
         <div className="flex flex-col items-end justify-between">
-          <ActionDropdown file={file} />
+          <ActionDropdown file={file} userId={currentUser.$id} />
           <p className="body-1">{convertFileSize(file.size)}</p>
         </div>
       </div>

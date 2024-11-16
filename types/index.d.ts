@@ -30,16 +30,19 @@ declare interface RenameFileProps {
   name: string;
   extension: string;
   path: string;
+  owner: string;
 }
 declare interface UpdateFileUsersProps {
   fileId: string;
   emails: string[];
   path: string;
+  owner: string;
 }
 declare interface DeleteFileProps {
   fileId: string;
   bucketFileId: string;
   path: string;
+  owner: string;
 }
 
 declare interface FileUploaderProps {
