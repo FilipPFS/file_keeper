@@ -6,7 +6,7 @@ import { appwriteConfig } from "../appwrite/config";
 import { InputFile } from "node-appwrite/file";
 import { constructFileUrl, getFileType, parseStringify } from "../utils";
 import { revalidatePath } from "next/cache";
-import { fetchCurrentUser } from "./user.actions";
+import { fetchCurrentUser, getTotalStorageUsedByUser } from "./user.actions";
 
 const handleError = (error: unknown, message: string) => {
   console.log(error);
@@ -20,9 +20,16 @@ export const uploadFile = async ({
   path,
 }: UploadFileProps) => {
   const { storage, databases } = await createAdminClient();
+  const storageUsed = await getTotalStorageUsedByUser();
 
   try {
     const inputFile = InputFile.fromBuffer(file, file.name);
+
+    const bytes = 60 * 1024 * 1024;
+
+    if (storageUsed + inputFile.size > bytes) {
+      throw new Error("Storage limit exceeded. Maximum allowed is 60 MB.");
+    }
 
     const bucketFile = await storage.createFile(
       appwriteConfig.bucketId,
@@ -61,7 +68,13 @@ export const uploadFile = async ({
   }
 };
 
-const createQueries = (currentUser: Models.Document) => {
+const createQueries = (
+  currentUser: Models.Document,
+  types: string[],
+  searchText: string,
+  sort: string,
+  limit?: number
+) => {
   const queries = [
     Query.or([
       Query.equal("owner", [currentUser.$id]),
@@ -69,10 +82,33 @@ const createQueries = (currentUser: Models.Document) => {
     ]),
   ];
 
+  if (types.length > 0) {
+    queries.push(Query.equal("type", types));
+  }
+  if (searchText) {
+    queries.push(Query.contains("name", searchText));
+  }
+  if (limit) {
+    queries.push(Query.limit(limit));
+  }
+
+  if (sort) {
+    const [sortBy, orderBy] = sort.split("-");
+
+    queries.push(
+      orderBy === "asc" ? Query.orderAsc(sortBy) : Query.orderDesc(sortBy)
+    );
+  }
+
   return queries;
 };
 
-export const getFiles = async () => {
+export const getFiles = async ({
+  types = [],
+  searchText = "",
+  sort = "$createdAt-desc",
+  limit = 8,
+}: GetFilesProps) => {
   const { databases } = await createAdminClient();
 
   try {
@@ -80,7 +116,7 @@ export const getFiles = async () => {
 
     if (!currentUser) throw new Error("Failed to find an user.");
 
-    const queries = createQueries(currentUser);
+    const queries = createQueries(currentUser, types, searchText, sort, limit);
 
     const files = await databases.listDocuments(
       appwriteConfig.databaseId,

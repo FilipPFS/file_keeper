@@ -3,7 +3,7 @@
 import { ID, Query } from "node-appwrite";
 import { createAdminClient, createSessionClient } from "../appwrite";
 import { appwriteConfig } from "../appwrite/config";
-import { parseStringify } from "../utils";
+import { convertFileSize, parseStringify } from "../utils";
 import { cookies } from "next/headers";
 import { avatarUrl } from "@/constants";
 import { redirect } from "next/navigation";
@@ -136,5 +136,28 @@ export const signInUser = async ({ email }: { email: string }) => {
     return parseStringify({ accountId: null, error: "User not found." });
   } catch (error) {
     handleError(error, "Failed to sing out user");
+  }
+};
+
+export const getTotalStorageUsedByUser = async () => {
+  const { databases } = await createAdminClient();
+
+  const currentUser = await fetchCurrentUser();
+
+  try {
+    const storage = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      [Query.equal("owner", currentUser.$id)]
+    );
+
+    const totalStorageUsed = storage.documents.reduce((total, document) => {
+      return total + (document.size || 0); // Sum the 'size' field; default to 0 if size is undefined
+    }, 0);
+
+    return parseStringify(totalStorageUsed);
+  } catch (error) {
+    console.error("Error fetching files:", error);
+    return null;
   }
 };

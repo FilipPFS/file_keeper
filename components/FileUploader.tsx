@@ -42,15 +42,24 @@ const FileUploader = ({ ownerId, accountId, className }: Props) => {
           });
         }
 
-        return uploadFile({ file, accountId, ownerId, path }).then(
-          (uploadedFile) => {
+        return uploadFile({ file, accountId, ownerId, path })
+          .then((uploadedFile) => {
             if (uploadedFile) {
               setFiles((prevFiles) =>
                 prevFiles.filter((f) => f.name !== file.name)
               );
+            } else {
+              toast({
+                description: "Une erreur est survenue",
+              });
             }
-          }
-        );
+          })
+          .catch((error) => {
+            setFiles([]);
+            toast({
+              description: error.toString(),
+            });
+          });
       });
 
       await Promise.all(uploadPromises);
