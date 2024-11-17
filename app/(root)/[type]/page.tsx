@@ -1,7 +1,7 @@
 import FileCard, { File } from "@/components/FileCard";
 import Sort from "@/components/Sort";
 import { getFiles } from "@/lib/actions/file.actions";
-import { getFileTypesParams } from "@/lib/utils";
+import { convertFileSize, getFileTypesParams } from "@/lib/utils";
 import { Models } from "node-appwrite";
 import React from "react";
 
@@ -12,7 +12,7 @@ const Type = async ({ searchParams, params }: SearchParamProps) => {
 
   const types = getFileTypesParams(type) as FileType[];
 
-  const files = await getFiles({ types, searchText, sort });
+  const result = await getFiles({ types, searchText, sort });
 
   return (
     <div className="page-container">
@@ -21,7 +21,8 @@ const Type = async ({ searchParams, params }: SearchParamProps) => {
 
         <div className="total-size-section">
           <p className="body-1">
-            Total: <span className="h5">0 MO</span>
+            Total:{" "}
+            <span className="h5">{convertFileSize(result.filesStorage)}</span>
           </p>
 
           <div className="sort-container">
@@ -31,9 +32,9 @@ const Type = async ({ searchParams, params }: SearchParamProps) => {
         </div>
       </section>
 
-      {files.documents.length > 0 ? (
+      {result.files.documents.length > 0 ? (
         <section className="file-list">
-          {files.documents.map((file: File) => (
+          {result.files.documents.map((file: File) => (
             <FileCard key={file.$id} file={file} />
           ))}
         </section>

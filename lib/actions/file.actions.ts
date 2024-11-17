@@ -25,7 +25,7 @@ export const uploadFile = async ({
   try {
     const inputFile = InputFile.fromBuffer(file, file.name);
 
-    const bytes = 60 * 1024 * 1024;
+    const bytes = 500 * 1024 * 1024;
 
     if (storageUsed + inputFile.size > bytes) {
       throw new Error("Storage limit exceeded. Maximum allowed is 60 MB.");
@@ -124,7 +124,13 @@ export const getFiles = async ({
       queries
     );
 
-    return parseStringify(files);
+    const filesStorage = files.documents.reduce((total, document) => {
+      return total + (document.size || 0); // Sum the 'size' field; default to 0 if size is undefined
+    }, 0);
+
+    console.log(filesStorage);
+
+    return parseStringify({ files, filesStorage });
   } catch (error) {
     handleError(error, "Failed to fetch files.");
   }
