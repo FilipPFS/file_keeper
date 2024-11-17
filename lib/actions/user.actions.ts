@@ -111,7 +111,7 @@ export const fetchCurrentUser = async () => {
 
     return parseStringify(user.documents[0]);
   } catch (error) {
-    handleError(error, "Error fetching user.");
+    console.error(error);
   }
 };
 
