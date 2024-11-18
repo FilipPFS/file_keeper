@@ -1,6 +1,5 @@
-"use client";
-
 import Link from "next/link";
+
 import ActionDropdown from "@/components/ActionDropdown";
 import { getFiles } from "@/lib/actions/file.actions";
 import Thumbnail from "@/components/Thumbnail";
@@ -8,26 +7,10 @@ import { type File } from "@/components/FileCard";
 import { Chart } from "@/components/Chart";
 import FormatedDateTime from "@/components/FormatedDateTime";
 import { getTotalStorageUsedByUser } from "@/lib/actions/user.actions";
-import { useUser } from "@/context/UserContext";
-import { useEffect, useState } from "react";
 
-const Dashboard = () => {
-  const { currentUser } = useUser();
-  const [result, setResult] = useState<File[] | []>([]);
-  const [storageUsed, setStorageUsed] = useState<number>(0);
-
-  useEffect(() => {
-    const fetchResult = async () => {
-      if (!currentUser) return;
-      const res = await getFiles({ types: [], limit: 10 });
-      const resStorage = await getTotalStorageUsedByUser();
-
-      setResult(res.files.documents);
-      setStorageUsed(resStorage);
-    };
-
-    fetchResult();
-  }, [currentUser]);
+const Dashboard = async () => {
+  const result = await getFiles({ types: [], limit: 10 });
+  const storageUsed = await getTotalStorageUsedByUser();
 
   return (
     <div className="flex flex-col gap-10">
@@ -36,9 +19,9 @@ const Dashboard = () => {
       </section>
       <section className="dashboard-recent-files">
         <h2 className="h3 xl:h2 text-light-100">Fichiers ajoutés recemment</h2>
-        {result.length > 0 ? (
+        {result.files.documents.length > 0 ? (
           <ul className="mt-5 flex flex-col gap-5">
-            {result.map((file: File) => (
+            {result.files.documents.map((file: File) => (
               <Link
                 href={file.url}
                 target="_blank"
@@ -59,7 +42,7 @@ const Dashboard = () => {
                       className="caption"
                     />
                   </div>
-                  <ActionDropdown file={file} userId={currentUser!.$id} />
+                  <ActionDropdown file={file} />
                 </div>
               </Link>
             ))}

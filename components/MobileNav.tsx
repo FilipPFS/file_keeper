@@ -39,7 +39,7 @@ const MobileNav = ({
 
   return (
     <header className="mobile-header">
-      <div className="flex gap-4 items-center">
+      <Link href={"/"} className="flex gap-4 items-center">
         <Image
           src={"/assets/images/vector-logo.png"}
           alt="logo"
@@ -47,7 +47,7 @@ const MobileNav = ({
           height={50}
         />
         <h2 className="text-xl font-semibold text-brand-100">FileKeeper</h2>
-      </div>
+      </Link>
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger>
@@ -82,7 +82,12 @@ const MobileNav = ({
                 const active = pathname === item.url;
 
                 return (
-                  <Link key={item.name} href={item.url} className="lg:w-full">
+                  <Link
+                    key={item.name}
+                    href={item.url}
+                    onClick={() => setOpen(false)}
+                    className="lg:w-full"
+                  >
                     <li
                       className={cn("mobile-nav-item", active && "shad-active")}
                     >

@@ -32,13 +32,15 @@ import {
 import { usePathname } from "next/navigation";
 import { FileDetails } from "./ActionModalContent";
 import ShareInput from "./ShareInput";
+import { useUser } from "@/context/UserContext";
 
 type Props = {
   file: File;
-  userId: string;
 };
 
-const ActionDropdown = ({ file, userId }: Props) => {
+const ActionDropdown = ({ file }: Props) => {
+  const user = useUser();
+  const userId = user.currentUser?.$id;
   const path = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
