@@ -1,26 +1,33 @@
-import Image from "next/image";
-import Link from "next/link";
-import { Models } from "node-appwrite";
+"use client";
 
+import Link from "next/link";
 import ActionDropdown from "@/components/ActionDropdown";
-import { ImageThumbnail } from "@/components/ActionModalContent";
-import { Separator } from "@/components/ui/separator";
 import { getFiles } from "@/lib/actions/file.actions";
-import { convertFileSize, getUsageSummary } from "@/lib/utils";
 import Thumbnail from "@/components/Thumbnail";
 import { type File } from "@/components/FileCard";
 import { Chart } from "@/components/Chart";
 import FormatedDateTime from "@/components/FormatedDateTime";
-import {
-  fetchCurrentUser,
-  getTotalStorageUsedByUser,
-} from "@/lib/actions/user.actions";
+import { getTotalStorageUsedByUser } from "@/lib/actions/user.actions";
+import { useUser } from "@/context/UserContext";
+import { useEffect, useState } from "react";
 
-const Dashboard = async () => {
-  const result = await getFiles({ types: [], limit: 10 });
+const Dashboard = () => {
+  const { currentUser } = useUser();
+  const [result, setResult] = useState<File[] | []>([]);
+  const [storageUsed, setStorageUsed] = useState<number>(0);
 
-  const storageUsed = await getTotalStorageUsedByUser();
-  const currentUser = await fetchCurrentUser();
+  useEffect(() => {
+    const fetchResult = async () => {
+      if (!currentUser) return;
+      const res = await getFiles({ types: [], limit: 10 });
+      const resStorage = await getTotalStorageUsedByUser();
+
+      setResult(res.files.documents);
+      setStorageUsed(resStorage);
+    };
+
+    fetchResult();
+  }, [currentUser]);
 
   return (
     <div className="flex flex-col gap-10">
@@ -29,9 +36,9 @@ const Dashboard = async () => {
       </section>
       <section className="dashboard-recent-files">
         <h2 className="h3 xl:h2 text-light-100">Fichiers ajoutés recemment</h2>
-        {result.files.documents.length > 0 ? (
+        {result.length > 0 ? (
           <ul className="mt-5 flex flex-col gap-5">
-            {result.files.documents.map((file: File) => (
+            {result.map((file: File) => (
               <Link
                 href={file.url}
                 target="_blank"
@@ -52,7 +59,7 @@ const Dashboard = async () => {
                       className="caption"
                     />
                   </div>
-                  <ActionDropdown file={file} userId={currentUser.$id} />
+                  <ActionDropdown file={file} userId={currentUser!.$id} />
                 </div>
               </Link>
             ))}
