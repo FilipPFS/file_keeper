@@ -10,6 +10,8 @@ import { MAX_FILE_SIZE } from "@/constants";
 import { useToast } from "@/hooks/use-toast";
 import { usePathname } from "next/navigation";
 import { uploadFile } from "@/lib/actions/file.actions";
+import { Client, ID, Storage } from "appwrite";
+import { appwriteConfig } from "@/lib/appwrite/config";
 
 type Props = {
   ownerId: string;
@@ -23,46 +25,36 @@ const FileUploader = ({ ownerId, accountId, className }: Props) => {
   const [files, setFiles] = useState<File[]>([]);
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
+      const client = new Client()
+        .setEndpoint(appwriteConfig.endpointUrl)
+        .setProject(appwriteConfig.projectId);
+      const storage = new Storage(client);
+
       setFiles(acceptedFiles);
 
-      const uploadPromises = acceptedFiles.map(async (file) => {
-        if (file.size > MAX_FILE_SIZE) {
-          setFiles((prevFiles) =>
-            prevFiles.filter((f) => f.name !== file.name)
+      for (const file of acceptedFiles) {
+        try {
+          // Upload file directly to Appwrite
+          const uploadedFile = await storage.createFile(
+            appwriteConfig.bucketId,
+            ID.unique(),
+            file
           );
 
-          return toast({
-            description: (
-              <p className="body-2 text-white">
-                <span className="font-semibold">{file.name} </span>
-                est trop lourd. La taille maximal est de 50mo.
-              </p>
-            ),
-            className: "error-toast",
-          });
-        }
-
-        return uploadFile({ file, accountId, ownerId, path })
-          .then((uploadedFile) => {
-            if (uploadedFile) {
-              setFiles((prevFiles) =>
-                prevFiles.filter((f) => f.name !== file.name)
-              );
-            } else {
-              toast({
-                description: "Une erreur est survenue",
-              });
-            }
-          })
-          .catch((error) => {
-            setFiles([]);
+          if (uploadedFile) {
+            await uploadFile({ ownerId, accountId, uploadedFile, path });
+            setFiles((prevFiles) =>
+              prevFiles.filter((f) => f.name !== file.name)
+            );
             toast({
-              description: error.toString(),
+              description: `${uploadedFile.name} a été ajouté.`,
             });
-          });
-      });
-
-      await Promise.all(uploadPromises);
+          }
+        } catch (error) {
+          console.error(error);
+          toast({ description: `Failed to upload ${file.name}` });
+        }
+      }
     },
     [ownerId, accountId, path]
   );

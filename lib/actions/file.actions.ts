@@ -7,6 +7,13 @@ import { InputFile } from "node-appwrite/file";
 import { constructFileUrl, getFileType, parseStringify } from "../utils";
 import { revalidatePath } from "next/cache";
 import { fetchCurrentUser, getTotalStorageUsedByUser } from "./user.actions";
+import {
+  DeleteFileProps,
+  GetFilesProps,
+  RenameFileProps,
+  UpdateFileUsersProps,
+  UploadFileProps,
+} from "@/types";
 
 const handleError = (error: unknown, message: string) => {
   console.log(error);
@@ -14,29 +21,15 @@ const handleError = (error: unknown, message: string) => {
 };
 
 export const uploadFile = async ({
-  file,
   ownerId,
   accountId,
   path,
+  uploadedFile,
 }: UploadFileProps) => {
-  const { storage, databases } = await createAdminClient();
-  const storageUsed = await getTotalStorageUsedByUser();
+  const bucketFile = uploadedFile;
+  const { databases, storage } = await createAdminClient();
 
   try {
-    const inputFile = InputFile.fromBuffer(file, file.name);
-
-    const bytes = 500 * 1024 * 1024;
-
-    if (storageUsed + inputFile.size > bytes) {
-      throw new Error("Storage limit exceeded. Maximum allowed is 60 MB.");
-    }
-
-    const bucketFile = await storage.createFile(
-      appwriteConfig.bucketId,
-      ID.unique(),
-      inputFile
-    );
-
     const fileDocument = {
       type: getFileType(bucketFile.name).type,
       name: bucketFile.name,

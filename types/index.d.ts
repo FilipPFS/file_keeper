@@ -1,5 +1,7 @@
 /* eslint-disable no-unused-vars */
 
+import { Models } from "appwrite";
+
 declare type FileType = "document" | "image" | "video" | "audio" | "other";
 
 declare interface ActionType {
@@ -14,7 +16,8 @@ declare interface SearchParamProps {
 }
 
 declare interface UploadFileProps {
-  file: File;
+  uploadedFile: Models.File;
+  file?: File;
   ownerId: string;
   accountId: string;
   path: string;
