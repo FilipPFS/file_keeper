@@ -85,3 +85,4 @@ export const avatarUrl =
   "https://thumbs.dreamstime.com/b/avatar-par-d%C3%A9faut-ic%C3%B4ne-profil-vectoriel-m%C3%A9dias-sociaux-utilisateur-portrait-176256935.jpg";
 
 export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+export const MAX_STORAGE = 500 * 1024 * 1024; // 500MB

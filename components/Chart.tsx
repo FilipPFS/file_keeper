@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
 import { calculatePercentage, convertFileSize } from "@/lib/utils";
+import { useStorage } from "@/context/StorageContext";
 
 const chartConfig = {
   size: {
@@ -28,8 +29,9 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export const Chart = ({ used = 0 }: { used: number }) => {
-  const percentage = calculatePercentage(used);
+export const Chart = () => {
+  const used = useStorage();
+  const percentage = calculatePercentage(used.storageUsed);
 
   const chartData = [
     { storage: percentage, fill: "white" }, // Pass percentage as data
@@ -91,7 +93,7 @@ export const Chart = ({ used = 0 }: { used: number }) => {
       <CardHeader className="chart-details">
         <CardTitle className="chart-title">Stockage Disponible</CardTitle>
         <CardDescription className="chart-description">
-          {convertFileSize(used)} / 500Mo
+          {convertFileSize(used.storageUsed)} / 500Mo
         </CardDescription>
       </CardHeader>
     </Card>

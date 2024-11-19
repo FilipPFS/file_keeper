@@ -10,12 +10,11 @@ import { getTotalStorageUsedByUser } from "@/lib/actions/user.actions";
 
 const Dashboard = async () => {
   const result = await getFiles({ types: [], limit: 10 });
-  const storageUsed = await getTotalStorageUsedByUser();
 
   return (
     <div className="flex flex-col gap-10">
       <section>
-        <Chart used={storageUsed} />
+        <Chart />
       </section>
       <section className="dashboard-recent-files">
         <h2 className="h3 xl:h2 text-light-100">Fichiers ajoutés recemment</h2>

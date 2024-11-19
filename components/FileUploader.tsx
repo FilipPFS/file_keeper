@@ -6,12 +6,13 @@ import { Button } from "./ui/button";
 import { cn, convertFileToUrl, getFileType } from "@/lib/utils";
 import Image from "next/image";
 import Thumbnail from "./Thumbnail";
-import { MAX_FILE_SIZE } from "@/constants";
+import { MAX_FILE_SIZE, MAX_STORAGE } from "@/constants";
 import { useToast } from "@/hooks/use-toast";
 import { usePathname } from "next/navigation";
 import { uploadFile } from "@/lib/actions/file.actions";
 import { Client, ID, Storage } from "appwrite";
 import { appwriteConfig } from "@/lib/appwrite/config";
+import { useStorage } from "@/context/StorageContext";
 
 type Props = {
   ownerId: string;
@@ -23,6 +24,7 @@ const FileUploader = ({ ownerId, accountId, className }: Props) => {
   const path = usePathname();
   const { toast } = useToast();
   const [files, setFiles] = useState<File[]>([]);
+  const { storageUsed } = useStorage();
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       const client = new Client()
@@ -34,7 +36,14 @@ const FileUploader = ({ ownerId, accountId, className }: Props) => {
 
       for (const file of acceptedFiles) {
         try {
-          // Upload file directly to Appwrite
+          if (file.size + storageUsed > MAX_STORAGE) {
+            toast({
+              description:
+                "Vous n'avez pas suffisament d'espace pour ajouter ce fichier.",
+            });
+            setFiles([]);
+            return;
+          }
           const uploadedFile = await storage.createFile(
             appwriteConfig.bucketId,
             ID.unique(),
